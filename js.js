@@ -4,10 +4,10 @@
 
 // --- Volume Icons ---
 const volumeIcons = {
-    'mute': '<img src="./mute.svg" alt="Muted" class="w-5 h-5">',
-    'min': '<img src="./min.svg" alt="Min Volume" class="w-5 h-5">',
-    'medium': '<img src="./mid.svg" alt="Medium Volume" class="w-5 h-5">',
-    'max': '<img src="./max.svg" alt="Max Volume" class="w-5 h-5">'
+    'mute': '<img src="svg/mute.svg" alt="Muted" class="w-5 h-5">',
+    'min': '<img src="svg/min.svg" alt="Min Volume" class="w-5 h-5">',
+    'medium': '<img src="svg/mid.svg" alt="Medium Volume" class="w-5 h-5">',
+    'max': '<img src="svg/max.svg" alt="Max Volume" class="w-5 h-5">'
 };
 
 // --- Phone Number Slider Logic ---
@@ -21,8 +21,7 @@ function updateVolumeIcon(volume) {
     const container = document.getElementById('volume-icon-container');
     let iconKey;
 
-    if (volume === 0) { iconKey = 'mute'; } 
-    else if (volume <= 33) { iconKey = 'min'; } 
+    if (volume <= 33) { iconKey = 'min'; } 
     else if (volume <= 66) { iconKey = 'medium'; } 
     else { iconKey = 'max'; }
     
