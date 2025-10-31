@@ -469,12 +469,12 @@ document.addEventListener('DOMContentLoaded', () => {
         chatButton.addEventListener('click', async () => {
             const prompt = chatInput.value;
             if (!prompt) {
-                chatResponseEl.textContent = 'Сначала напиши вопрос.';
+                chatResponseEl.textContent = 'Ask a question first.';
                 return;
             }
 
             // Блокируем кнопку и показываем, что мы грузим
-            chatResponseEl.textContent = 'Думаю...';
+            chatResponseEl.textContent = 'Thinking...';
             chatButton.setAttribute('disabled', 'true');
             chatButton.classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error('Chat Error:', error);
-                chatResponseEl.textContent = `Ошибка: ${error.message}`;
+                chatResponseEl.textContent = `Error: ${error.message}`;
             } finally {
                 // В любом случае (успех или ошибка) возвращаем кнопку
                 chatButton.removeAttribute('disabled');
