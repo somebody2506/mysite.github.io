@@ -110,7 +110,7 @@ function stopTimer() {
 // ===================================
 // 2. CURRENCY CONVERTER LOGIC (GLOBAL)
 // ===================================
-const API_KEY = 'YOUR_API_KEY'; // !!! СЮДА ВСТАВЬТЕ ВАШ КЛЮЧ
+const API_KEY = '7c88b240c96c83d83e28c124'; // !!! СЮДА ВСТАВЬТЕ ВАШ КЛЮЧ
 const EXCHANGE_API_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`; 
 
 let exchangeRates = {}; // Будет заполнено из API
@@ -191,7 +191,7 @@ async function fetchExchangeRates() {
     if (dateDisplay) { dateDisplay.textContent = 'Last updated: Loading...'; }
 
     // Проверка, что ключ API был изменен
-    if (API_KEY === '7c88b240c96c83d83e28c124') {
+    if (API_KEY === 'YOUR_API_KEY') {
         const errorMsg = 'Error: API_KEY not set in js.js!';
         console.error("Please get a free API key from exchangerate-api.com and update API_KEY in js.js");
         if (dateDisplay) { dateDisplay.textContent = `Last updated: ${errorMsg}`; }
