@@ -44,12 +44,24 @@ export default async function handler(request, response) {
 
         const data = await apiResponse.json();
         
-        // 6. Обрабатываем ответ
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-            console.error('Unexpected Google API response structure:', data);
-            throw new Error('Invalid response structure from Google');
+        // 6. Обрабатываем ответ (НОВАЯ, БОЛЕЕ НАДЕЖНАЯ ПРОВЕРКА)
+        if (!data.candidates || !data.candidates[0]) {
+            // Если кандидатов вообще нет
+            console.error('No candidates found in Google response:', data);
+            throw new Error('Google returned an empty response.');
         }
 
+        // Проверяем, есть ли 'parts' (текст)
+        if (!data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+            // Текста нет. Скорее всего, это 'safety block'
+            console.warn('Google response has no text (safety block?):', data.candidates[0]);
+            
+            // Получаем причину, если она есть
+            const reason = data.candidates[0].finishReason || 'UNKNOWN_REASON';
+            throw new Error(`Response blocked by Google. Reason: ${reason}`);
+        }
+
+        // Если все проверки пройдены, берем текст
         const text = data.candidates[0].content.parts[0].text;
 
         // 7. Отправляем чистый текст обратно
