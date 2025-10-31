@@ -1,74 +1,81 @@
+// api/chat.js (ВЕРСИЯ 4 - ПУЛЕНЕПРОБИВАЕМАЯ)
+//
+// Мы больше не доверяем Google.
+// 1. Читаем ответ как .text()
+// 2. Проверяем, не пустой ли он.
+// 3. ТОЛЬКО ПОТОМ парсим как JSON.
+
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
+    let rawGoogleResponse; // Переменная для отладки
+
     try {
-        // 1. Достаем prompt и model
         const { prompt, model } = request.body;
-
-        if (!prompt) {
-            return response.status(400).json({ error: 'Prompt is required' });
-        }
-        // 2. (НОВОЕ) Простая проверка, что модель вообще прислали
-        if (!model) {
-            return response.status(400).json({ error: 'Model is required' });
+        if (!prompt || !model) {
+            return response.status(400).json({ error: 'Prompt and model are required' });
         }
 
-        // 3. Тайно берем API-ключ
         const apiKey = process.env.GEMINI_API_KEY;
-
-        // 4. (ИЗМЕНЕНО) 'model' теперь приходит прямо из запроса
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
         const apiRequestBody = {
-            contents: [
-                { parts: [ { text: prompt } ] }
-            ]
+            contents: [{ parts: [{ text: prompt }] }]
         };
 
-        // 5. Отправляем запрос в Google
+        // 1. Отправляем запрос в Google
         const apiResponse = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(apiRequestBody),
         });
 
-        if (!apiResponse.ok) {
-            const errorData = await apiResponse.json();
-            console.error('Google API Error (chat):', errorData);
-            return response.status(errorData.error.code || 500).json({ 
-                error: errorData.error.message || 'Google API Error' 
-            });
-        }
+        // 2. ЧИТАЕМ ОТВЕТ КАК ТЕКСТ (!!!)
+        rawGoogleResponse = await apiResponse.text();
 
-        const data = await apiResponse.json();
-        
-        // 6. Обрабатываем ответ (НОВАЯ, БОЛЕЕ НАДЕЖНАЯ ПРОВЕРКА)
-        if (!data.candidates || !data.candidates[0]) {
-            // Если кандидатов вообще нет
-            console.error('No candidates found in Google response:', data);
+        // 3. ПРОВЕРЯЕМ, не пустой ли он
+        if (!rawGoogleResponse) {
+            console.error('Google API returned an empty response.');
             throw new Error('Google returned an empty response.');
         }
 
-        // Проверяем, есть ли 'parts' (текст)
-        if (!data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-            // Текста нет. Скорее всего, это 'safety block'
-            console.warn('Google response has no text (safety block?):', data.candidates[0]);
-            
-            // Получаем причину, если она есть
-            const reason = data.candidates[0].finishReason || 'UNKNOWN_REASON';
-            throw new Error(`Response blocked by Google. Reason: ${reason}`);
+        // 4. ТЕПЕРЬ ПЫТАЕМСЯ ПАРСИТЬ
+        const data = JSON.parse(rawGoogleResponse);
+
+        // 5. Проверяем, была ли это ошибка (уже из JSON)
+        if (!apiResponse.ok || data.error) {
+            console.error('Google API Error (parsed from JSON):', data.error);
+            throw new Error(data.error?.message || 'Google API Error');
+        }
+        
+        // 6. Обрабатываем УСПЕШНЫЙ ответ
+        if (!data.candidates || !data.candidates[0]) {
+            console.warn('No candidates found (safety block?):', rawGoogleResponse);
+            throw new Error('Google returned no answer (likely a safety block).');
         }
 
-        // Если все проверки пройдены, берем текст
+        if (!data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+            const reason = data.candidates[0].finishReason || 'NO_TEXT';
+            console.warn('Google response has no text parts:', reason, rawGoogleResponse);
+            throw new Error(`Response blocked. Reason: ${reason}`);
+        }
+
         const text = data.candidates[0].content.parts[0].text;
 
         // 7. Отправляем чистый текст обратно
         response.status(200).json({ reply: text });
 
     } catch (error) {
+        // ЭТОТ БЛОК ТЕПЕРЬ ПОЙМАЕТ ВСЁ
         console.error('Internal Server Error (chat):', error.message);
+        
+        // (Для отладки) Если ошибка была в парсинге, логируем сырой ответ
+        if (error.name === 'SyntaxError') { // SyntaxError = это ошибка JSON.parse()
+            console.error('Failed to parse Google response:', rawGoogleResponse);
+        }
+        
         response.status(500).json({ error: error.message || 'Failed to fetch from Gemini' });
     }
 }
