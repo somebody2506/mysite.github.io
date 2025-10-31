@@ -19,9 +19,9 @@ export default async function handler(request, response) {
 
         const data = await apiResponse.json();
 
+        console.log('RAW GOOGLE RESPONSE:', JSON.stringify(data, null, 2)); 
+
         // Карта для хранения уникальных моделей
-        // Ключ: baseModelId (напр. 'gemini-2.5-flash')
-        // Значение: displayName (напр. 'Gemini 2.5 Flash')
         const modelMap = new Map();
 
         // Фильтруем список от Google
