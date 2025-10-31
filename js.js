@@ -458,30 +458,52 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVideoCarousel(); 
     }
 
-// --- 7. AI Chat Initialization (ENGLISH VERSION WITH ERROR STYLING) ---
+// --- 7. AI Chat Initialization (ENGLISH, WITH MEMORY & DEFAULT) ---
         const chatInput = document.getElementById('chat-input');
         const chatButton = document.getElementById('chat-button');
         const modelSelect = document.getElementById('model-select');
-        
-        // Находим наш контейнер для истории
         const chatHistoryContainer = document.getElementById('chat-history-container');
-        
-        // "Память" чата
+
+        // --- (НОВОЕ) Ключи для localStorage и твоя модель по умолчанию ---
+        const MODEL_PREFERENCE_KEY = 'gemini_model_preference';
+        const DEFAULT_MODEL_ID = 'models/gemini-2.5-flash'; // Модель, которую ты хочешь по умолчанию
+
         let conversationHistory = [];
 
-        // Вспомогательная функция для отрисовки сообщения
+        // (НОВОЕ) Функция для установки <select> после загрузки
+        function setModelSelection(models) {
+            // 1. Пытаемся найти сохраненную модель
+            const savedModel = localStorage.getItem(MODEL_PREFERENCE_KEY);
+            
+            // Проверяем, существует ли сохраненная модель в списке, который пришел с API
+            const savedModelExists = models.some(model => model.id === savedModel);
+
+            if (savedModel && savedModelExists) {
+                // Если да - ставим ее
+                modelSelect.value = savedModel;
+            } else {
+                // 2. Если нет - ставим твою дефолтную (gemini-2.5-flash)
+                const defaultModelExists = models.some(model => model.id === DEFAULT_MODEL_ID);
+                
+                if (defaultModelExists) {
+                    modelSelect.value = DEFAULT_MODEL_ID;
+                }
+                // (Если даже ее нет, просто выберется первая в списке)
+            }
+        }
+
+        // Вспомогательная функция для отрисовки сообщения (без изменений)
         function appendMessage(sender, text) {
             if (!chatHistoryContainer) return;
             
             const messageElement = document.createElement('div');
             messageElement.classList.add('mb-2');
-            messageElement.style.whiteSpace = 'pre-wrap'; // Сохраняет переносы строк
+            messageElement.style.whiteSpace = 'pre-wrap'; 
 
             if (sender === 'user') {
                 messageElement.classList.add('text-right');
                 messageElement.innerHTML = `<span class="inline-block p-2 bg-blue-600 text-white rounded-lg">${text}</span>`;
             } else {
-                // (УЛУЧШЕНИЕ) Ошибки (sender === 'error') теперь в красном
                 messageElement.classList.add('text-left');
                 if (sender === 'error') {
                     messageElement.innerHTML = `<span class="inline-block p-2 bg-red-800 text-red-100 rounded-lg">${text}</span>`;
@@ -494,17 +516,17 @@ document.addEventListener('DOMContentLoaded', () => {
             chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
         }
 
-        // Функция загрузки моделей
+        // Функция загрузки моделей (ИЗМЕНЕНА)
         async function populateModels() {
             try {
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
-                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Loading model list...</p>'; // <-- Переведено
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Loading model list...</p>';
 
                 const response = await fetch('/api/getModels'); 
-                if (!response.ok) throw new Error('Failed to get model list.'); // <-- Переведено
+                if (!response.ok) throw new Error('Failed to get model list.');
 
-                const models = await response.json(); 
+                const models = await response.json(); // Получаем массив [{id:..., name:...}]
 
                 modelSelect.innerHTML = ''; 
                 models.forEach(model => {
@@ -514,31 +536,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     modelSelect.appendChild(option);
                 });
                 
+                // --- (НОВОЕ) ---
+                // После того как список заполнен,
+                // вызываем функцию, которая выберет нужный <option>
+                setModelSelection(models); 
+                // --- (КОНЕЦ НОВОГО) ---
+                
                 chatButton.removeAttribute('disabled');
                 chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Ready.</p>'; // <-- Переведено
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Ready.</p>';
 
             } catch (error) {
                 console.error('Failed to populate models:', error);
-                modelSelect.innerHTML = '<option value="" disabled>Loading error</option>'; // <-- Переведено
-                if (chatHistoryContainer) chatHistoryContainer.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`; // <-- Переведено
+                modelSelect.innerHTML = '<option value="" disabled>Loading error</option>';
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
             }
         }
 
-        // Проверяем, что все элементы на месте
+        // Проверяем, что все элементы на месте (ИЗМЕНЕНО)
         if (chatButton && chatInput && chatHistoryContainer && modelSelect) {
             
-            // Запускаем загрузку моделей
+            // 1. Запускаем загрузку моделей (как и раньше)
             populateModels();
 
-            // Навешиваем клик на кнопку
+            // 2. (НОВОЕ) Вешаем listener на <select>, чтобы СОХРАНЯТЬ выбор
+            modelSelect.addEventListener('change', () => {
+                localStorage.setItem(MODEL_PREFERENCE_KEY, modelSelect.value);
+            });
+
+            // 3. Вешаем listener на кнопку (без изменений)
             chatButton.addEventListener('click', async () => {
                 const prompt = chatInput.value.trim(); 
                 const selectedModel = modelSelect.value; 
 
                 if (!prompt) return; 
                 if (!selectedModel) {
-                    appendMessage('error', 'Error: Models are not loaded.'); // <-- Переведено
+                    appendMessage('error', 'Error: Models are not loaded.');
                     return;
                 }
 
@@ -571,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } catch (error) {
                     console.error('Chat Error:', error);
-                    appendMessage('error', `Error: ${error.message}`); // <-- Переведено
+                    appendMessage('error', `Error: ${error.message}`);
                 } finally {
                     chatButton.removeAttribute('disabled');
                     chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
