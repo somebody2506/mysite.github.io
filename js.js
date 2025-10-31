@@ -342,9 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (display && phoneSlider) {
         display.textContent = formatPhoneNumber(phoneSlider.value);
         phoneSlider.addEventListener('input', function() { display.textContent = formatPhoneNumber(this.value); });
-        phoneSlider.addEventListener('touchstart', disableScroll, { passive: false });
-        phoneSlider.addEventListener('touchend', enableScroll);
-        phoneSlider.addEventListener('touchcancel', enableScroll);
     }
 
     // --- 2. Playtime Initialization ---
@@ -363,9 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateVolumeIcon(volume); 
             styleVolumeSlider(this);
         });
-        volumeSlider.addEventListener('touchstart', disableScroll, { passive: false });
-        volumeSlider.addEventListener('touchend', enableScroll);
-        volumeSlider.addEventListener('touchcancel', enableScroll);
     }
 
     // --- 4. Radio Control Initialization ---

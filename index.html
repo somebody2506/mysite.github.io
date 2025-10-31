@@ -241,40 +241,35 @@
     <div id="video-carousel" class="relative w-full overflow-hidden">
         <div id="video-wrapper" class="flex transition-transform duration-500 ease-in-out">
             
-                        <div class="video-item flex-shrink-0 w-full">
+            <div class="video-item flex-shrink-0 w-full">
                 <div class="video-container">
                     <iframe 
-                        src="https://www.youtube.com/embed/UnktCDi-BVs" 
-                        title="Oh my gah!" 
+                        id="video-player-0" src="https://www.youtube.com/embed/UnktCDi-BVs?enablejsapi=1" title="Oh my gah!" 
                         frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                         allowfullscreen
-                        class="w-full h-auto block" 
-                        loading="lazy"
-                    ></iframe>
-                </div>
-            </div>
-            
-                        <div class="video-item flex-shrink-0 w-full">
-                <div class="video-container">
-                    <iframe
-                        src="https://www.youtube.com/embed/w-IbCCBqMuA"
-                        title="Кроты - хомяки !!"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerpolicy="strict-origin-when-cross-origin"
-                        allowfullscreen
-                        class="w-full h-auto block"
-                        loading="lazy"
-                    ></iframe>
+                        loading="lazy">
+                    </iframe>
                 </div>
             </div>
             
             <div class="video-item flex-shrink-0 w-full">
                 <div class="video-container">
                     <iframe 
-                        src="https://www.youtube.com/embed/_PGgKjO7jzk?si=UXeAWuiEf5_SGEAy" 
-                        title="YouTube video player" 
+                        id="video-player-1" src="https://www.youtube.com/embed/w-IbCCBqMuA?enablejsapi=1" title="Кроты - хомяки !!" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen
+                        loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+            
+            <div class="video-item flex-shrink-0 w-full">
+                <div class="video-container">
+                    <iframe 
+                        id="video-player-2" src="https://www.youtube.com/embed/_PGgKjO7jzk?si=UXeAWuiEf5_SGEAy&enablejsapi=1" title="YouTube video player" 
                         frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                         referrerpolicy="strict-origin-when-cross-origin" 
@@ -361,6 +356,6 @@
     </div>
 
     
-
+</div> <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
