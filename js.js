@@ -156,31 +156,31 @@ function populateCurrencySelectors() {
     if (!currencyFromSelect || !currencyToSelect) return;
     
     const sortedCodes = Object.keys(exchangeRates).sort();
+    
+    // Сохраняем текущие значения, если они есть
     const currentFromValue = currencyFromSelect.value;
     const currentToValue = currencyToSelect.value;
         
-    // Очищаем списки (оставляем первый элемент 'UAH' в списке "From")
-    while (currencyFromSelect.options.length > 1) { currencyFromSelect.remove(1); }
-    // Очищаем *весь* список "To"
+    // --- ИСПРАВЛЕНИЕ ---
+    // Очищаем ОБА списка ПОЛНОСТЬЮ
+    while (currencyFromSelect.options.length > 0) { currencyFromSelect.remove(0); }
     while (currencyToSelect.options.length > 0) { currencyToSelect.remove(0); }
         
-    // Добавляем все валюты
+    // --- ИСПРАВЛЕНИЕ ---
+    // Добавляем *все* валюты, включая UAH
     sortedCodes.forEach(code => {
-        // 'UAH' уже жестко закодирован в HTML для "From", пропускаем его
-        if (code !== 'UAH') {
-            const option = document.createElement('option');
-            option.value = code;
-            // У этого API нет полных имен (txt), поэтому просто используем код
-            option.textContent = code; 
-            
-            currencyFromSelect.appendChild(option.cloneNode(true));
-            currencyToSelect.appendChild(option);
-        }
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = code; // У этого API нет полных имен (txt), поэтому просто используем код
+        
+        currencyFromSelect.appendChild(option.cloneNode(true));
+        currencyToSelect.appendChild(option);
     });
         
-    // Восстанавливаем выбранные значения
-    currencyFromSelect.value = currentFromValue;
-    // Устанавливаем USD по умолчанию для 'To', если он доступен
+    // --- ИСПРАВЛЕНИЕ ---
+    // Устанавливаем значения:
+    // Либо старые (если были), либо по умолчанию (UAH -> USD)
+    currencyFromSelect.value = currentFromValue ? currentFromValue : 'UAH';
     currencyToSelect.value = currentToValue ? currentToValue : 'USD';
 }
 
