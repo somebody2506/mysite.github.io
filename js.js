@@ -458,3 +458,63 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVideoCarousel(); 
     }
 });
+
+// =========================================================
+// 7. AI CHAT LOGIC (НОВЫЙ БЛОК)
+// =========================================================
+
+// Мы снова используем DOMContentLoaded, но это нормально.
+// Код просто добавится в очередь и выполнится, когда страница загрузится.
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- 7. AI Chat Initialization ---
+    const chatInput = document.getElementById('chat-input');
+    const chatButton = document.getElementById('chat-button');
+    const chatResponseEl = document.getElementById('chat-response');
+
+    if (chatButton && chatInput && chatResponseEl) {
+        
+        // Навешиваем клик на кнопку
+        chatButton.addEventListener('click', async () => {
+            const prompt = chatInput.value;
+            if (!prompt) {
+                chatResponseEl.textContent = 'Сначала напиши вопрос.';
+                return;
+            }
+
+            // Блокируем кнопку и показываем, что мы грузим
+            chatResponseEl.textContent = 'Думаю...';
+            chatButton.setAttribute('disabled', 'true');
+            chatButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+            try {
+                // Отправляем запрос НЕ в Google, а на НАШ собственный бэкенд /api/chat
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: prompt }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Server error');
+                }
+
+                const data = await response.json();
+                
+                // Показываем ответ от /api/chat
+                chatResponseEl.textContent = data.reply;
+
+            } catch (error) {
+                console.error('Chat Error:', error);
+                chatResponseEl.textContent = `Ошибка: ${error.message}`;
+            } finally {
+                // В любом случае (успех или ошибка) возвращаем кнопку
+                chatButton.removeAttribute('disabled');
+                chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    }
+});
