@@ -286,7 +286,7 @@ function createPaginationDots(videoCount) {
     // Создаем по одной точке для каждого видео
     for (let i = 0; i < videoCount; i++) {
         const dot = document.createElement('button');
-        dot.classList.add('pagination-dot', 'w-3', 'h-3', 'rounded-full', 'bg-gray-400', 'hover:bg-gray-600', 'transition-colors');
+        dot.classList.add('pagination-dot', 'w-3', 'h-3', 'rounded-full', 'bg-gray-400', 'hover:bg-gray-600', 'transition-colors', 'pointer-events-auto');
         dot.setAttribute('aria-label', `Go to video ${i + 1}`);
         
         // Добавляем обработчик клика, чтобы по точке можно было перейти к слайду
