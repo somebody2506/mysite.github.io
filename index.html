@@ -1,0 +1,366 @@
+<!DOCTYPE:html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" href="./mid.svg" as="image">
+    <link rel="preload" href="./mute.svg" as="image">
+    <link rel="preload" href="./min.svg" as="image">
+    <link rel="preload" href="./max.svg" as="image">
+    <link rel="preload" href="https://media1.tenor.com/m/QfA2XrOXS40AAAAd/%D1%82%D1%8E%D0%BB%D0%B5%D0%BD%D1%8C.gif" as="image">
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" as="style">
+    <title>SMBD</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="js.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- Header, Phone Number and Slider Section -->
+        <header class="pt-4 pb-2 flex flex-col md:flex-row justify-between items-start md:items-center">
+            
+            <!-- Left Side: SMBD Title -->
+            <div class="mb-4 md:mb-0 text-left">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2">
+                    SMBD
+                </h1>
+                <p class="text-lg text-gray-600">
+                    Chunchunmaru enjoyer
+                </p>
+            </div>
+            
+            <!-- Right Side: Inconvenient Phone Input -->
+            <div class="bg-white p-4 rounded-xl shadow-md w-full md:w-80 border border-indigo-200">
+                
+                <!-- Phone Number Display -->
+                <p id="phone-number-display" class="text-xl font-mono font-bold text-indigo-600 mb-3 select-none">
+                    +38 000 000 00 00
+                </p>
+                
+                <!-- Slider Input -->
+                <input 
+                    type="range" 
+                    min="0" 
+                    max="9999999999" 
+                    value="0" 
+                    id="phone-slider"
+                    aria-label="Phone number input slider"
+                >
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+        
+<div class="p-6 rounded-3xl shadow-xl border-t-4 bg-gray-900 border-blue-500 text-white"> 
+    <h2 class="text-2xl font-bold mb-4 text-center">
+        Steam Powered
+    </h2>
+    <div class="flex flex-col items-center justify-center space-y-4">
+        <img 
+            src="https://avatars.akamai.steamstatic.com/a78c6781e70fea7b3031932f2b58c1b5e3bcc550_full.jpg" 
+            alt="AMD RX580 Avatar" 
+            class="w-32 h-32 rounded-full object-cover border-4 border-blue-400 mb-6"
+            onerror="this.onerror=null;this.src='https://placehold.co/128x128/3a3a3a/ffffff?text=AMD'"
+        >
+        
+        <a 
+            href="https://steamcommunity.com/id/bruh_somebody/" 
+            target="_blank" 
+            class="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-150 transform hover:scale-105"
+            aria-label="Visit Steam Profile"
+        >
+            <img src="./steam.svg" alt="Steam Icon" class="w-5 h-5 flex-shrink-0" />
+            <span>AMD RX580</span>
+        </a>
+        <p class="text-sm text-gray-300">
+            Click to view profile
+        </p>
+    </div>
+</div>
+
+    <div class="p-6 bg-white rounded-3xl shadow-xl border-t-4 border-blue-500">
+        <h2 class="text-2xl font-bold mb-4 text-blue-600 text-center">
+            Spinning Seal FM
+        </h2>
+        
+        <div class="mb-6 flex justify-center">
+            <img 
+                src="./seal.gif" 
+                alt="Spinning Seal GIF" 
+                class="w-32 h-32 object-cover rounded-full shadow-lg"
+                onerror="this.onerror=null;this.src='https://placehold.co/128x128/ADD8E6/000?text=SEAL';this.classList.remove('rounded-full');"
+            >
+        </div>
+        
+        <audio id="seal-audio" class="hidden" preload="auto">
+            <source src="https://stream-178.zeno.fm/9q3ez3k3fchvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5cTNlejNrM2ZjaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzguemVuby5mbSIsInJ0dGwiOjUsImp0aSI6Imp6X1Z4NE1OUmRXWEx2d2FOTy1QblEiLCJpYXQiOjE3NjE3NDczMDgsImV4cHAiOjE3NjE3NDczNjh9.ojKtmjrNsmDdRdxQI7f-g0DQh4tvpQnk0XVIeOLqpc" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+        
+        <div class="flex items-center justify-center space-x-4">
+            
+            <button 
+                id="toggle-play-btn" 
+                class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg rounded-full shadow-lg transition duration-150 transform hover:scale-105"
+                aria-label="Toggle Radio Playback"
+            >
+                Play
+            </button>
+            
+            <div class="flex items-center space-x-2 w-1/2 min-w-32">
+                <div id="volume-icon-container" class="w-5 h-5 text-blue-600 flex-shrink-0">
+                    <img src="./volume.svg" alt="Volume Icon" class="w-5 h-5">
+                </div>
+                
+                <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    value="50" 
+                    id="volume-slider"
+                    class="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg"
+                    aria-label="Volume control slider"
+                >
+            </div>
+        </div>
+        <div class="flex items-center justify-center space-x-4">
+    </div>
+<p id="status-message" class="hidden text-sm mt-3 text-gray-500">Radio Off</p>
+
+<div class="mt-4 flex flex-col items-center sm:flex-row sm:justify-center sm:space-x-2">
+    <p class="text-xl font-bold text-gray-700 whitespace-nowrap mb-1 sm:mb-0">
+        Sealing Time:
+    </p>
+    <p id="total-playtime" class="text-xl sm:text-xl font-extrabold text-blue-800 tracking-tighter whitespace-nowrap">
+        0 Days, 00h 00m 00s
+    </p>
+</div>
+    </div>
+</div>
+        
+        <!-- Featured Link Section (New Block with multiple links) --><div class="p-6 bg-purple-600 rounded-3xl shadow-xl hover:shadow-2xl transition duration-300 transform hover:scale-[1.01] text-white mt-8">
+            
+            <h3 class="text-2xl font-extrabold mb-4 text-center">Cool sites:</h3>
+
+            <div class="space-y-4">
+                
+                <!-- Link 1: massgrave.dev-->
+                <a 
+                    href="https://massgrave.dev/" 
+                    target="_blank" 
+                    class="flex items-center space-x-4 p-3 bg-purple-700 hover:bg-purple-800 rounded-lg transition duration-150"
+                >
+                    <img 
+                        src="https://massgrave.dev/img/logo.png" 
+                        alt="Massgrave Logo" 
+                        class="w-8 h-8 rounded object-contain" 
+                        onerror="this.onerror=null;this.src='https://placehold.co/32x32/ffdd00/000?text=MG'"
+                    >
+                    <span class="text-xl font-bold underline">massgrave.dev</span>
+                </a>
+
+                <!-- Link 2: adderly.top -->
+                <a 
+                    href="https://adderly.top" 
+                    target="_blank" 
+                    class="flex items-center space-x-4 p-3 bg-purple-700 hover:bg-purple-800 rounded-lg transition duration-150"
+                >
+                    <img 
+                        src="https://adderly.top/icons/1.png" 
+                        alt="Adderly Icon" 
+                        class="w-8 h-8 rounded-md object-cover" 
+                        onerror="this.onerror=null;this.src='https://placehold.co/32x32/ffdd00/000?text=ICON'"
+                    >
+                    <span class="text-xl font-bold underline">adderly.top</span>
+                </a>
+
+            </div>
+        </div>
+
+       <div class="p-6 bg-cyan-50 border-4 border-cyan-400 rounded-3xl shadow-xl mt-8">
+    <h2 class="text-3xl font-extrabold text-cyan-800 mb-6 text-center flex items-center justify-center space-x-2">
+        <span>Telegram</span>
+        <img 
+            src="./telegram.svg" 
+            alt="Telegram Icon" 
+            class="h-8 w-8 text-cyan-800 inline-block translate-y-0.5" 
+        />
+    </h2>
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+        
+        <div class="p-6 bg-white rounded-3xl shadow-xl border-t-4 border-cyan-500">
+            <h2 class="text-2xl font-bold mb-4 text-center text-cyan-600">SMBD Archive</h2>
+            <div class="flex flex-col items-center justify-center space-y-4">
+                <img 
+                    src="./archive.jpg" 
+                    alt="SMBD Archive Avatar" 
+                    class="w-24 h-24 rounded-full object-cover border-4 border-cyan-400"
+                    onerror="this.onerror=null;this.src='https://placehold.co/96x96/06b6d4/ffffff?text=ARCH';"
+                >
+                <a 
+                    href="https://t.me/thereis_something_inside_you" 
+                    target="_blank" 
+                    class="inline-flex items-center space-x-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg shadow-md transition duration-150 transform hover:scale-105"
+                    aria-label="Visit Telegram Channel"
+                >
+                    <span>Join Channel</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="p-6 bg-white rounded-3xl shadow-xl border-t-4 border-cyan-500">
+            <h2 class="text-2xl font-bold mb-4 text-center text-cyan-600">Даня 🍉</h2>
+            <div class="flex flex-col items-center justify-center space-y-4">
+                <img 
+                    src="./danya.jpg" 
+                    alt="Даня 🍉 Contact Avatar" 
+                    class="w-24 h-24 rounded-full object-cover border-4 border-cyan-400"
+                    onerror="this.onerror=null;this.src='https://placehold.co/96x96/06b6d4/ffffff?text=DANYA';"
+                >
+                <a 
+                    href="https://t.me/Bruh_SomeBody" 
+                    target="_blank" 
+                    class="inline-flex items-center space-x-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg shadow-md transition duration-150 transform hover:scale-105"
+                    aria-label="Contact Даня on Telegram"
+                >
+                    <span>Text Me</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+        
+<div class="bg-white p-6 rounded-3xl shadow-xl border-4 border-gray-300 relative overflow-hidden">
+    <h2 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+        <span>Videos</span>
+    </h2>
+    <div id="video-carousel" class="relative w-full overflow-hidden">
+        <div id="video-wrapper" class="flex transition-transform duration-500 ease-in-out">
+            
+                        <div class="video-item flex-shrink-0 w-full">
+                <div class="video-container">
+                    <iframe 
+                        src="https://www.youtube.com/embed/UnktCDi-BVs" 
+                        title="Oh my gah!" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen
+                        class="w-full h-auto block" 
+                        loading="lazy"
+                    ></iframe>
+                </div>
+            </div>
+            
+                        <div class="video-item flex-shrink-0 w-full">
+                <div class="video-container">
+                    <iframe
+                        src="https://www.youtube.com/embed/w-IbCCBqMuA"
+                        title="Кроты - хомяки !!"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                        class="w-full h-auto block"
+                        loading="lazy"
+                    ></iframe>
+                </div>
+            </div>
+            
+            <div class="video-item flex-shrink-0 w-full">
+                <div class="video-container">
+                    <iframe 
+                        src="https://www.youtube.com/embed/_PGgKjO7jzk?si=UXeAWuiEf5_SGEAy" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen
+                        loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+
+        </div>         <button id="prev-video" class="absolute top-1/2 left-4 -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-lg opacity-75 hover:opacity-100 transition-opacity z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button id="next-video" class="absolute top-1/2 right-4 -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow-lg opacity-75 hover:opacity-100 transition-opacity z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </path>
+            </svg>
+        </button>
+        
+        <div id="video-pagination" class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
+            </div>
+
+    </div> </div>
+
+<div class="p-6 bg-yellow-50 border-4 border-yellow-400 rounded-3xl shadow-xl mt-8" id="currency-converter-block">
+    <h2 class="text-3xl font-extrabold text-yellow-800 mb-6 text-center flex items-center justify-center space-x-2">
+        <span>Currency Converter</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-800 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 4v2m0 2v2m0 4V18m0-8h2m-2 0H10m0 0v-2m0 2v2m0 2v2m0 4V18m0-8h2m-2 0H10M3 3h18M3 21h18M5 5v14m14-14v14" />
+        </svg>
+    </h2>
+
+    <div class="space-y-4">
+        
+        <div class="relative">
+            <label for="amount-from" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <input 
+                type="number" 
+                id="amount-from" 
+                value="100"
+                min="0.01"
+                step="0.01"
+                class="w-full p-3 border-2 border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 text-lg font-bold"
+            >
+        </div>
+
+        <div class="flex space-x-2 sm:space-x-4 items-center">
+            
+            <div class="flex-1">
+                <label for="currency-from" class="block text-sm font-medium text-gray-700 mb-1">From</label>
+                <select id="currency-from" class="w-full p-3 border-2 border-yellow-300 rounded-lg text-gray-900 bg-white">
+                    <option value="UAH" selected>Українська гривня (UAH)</option>
+                </select>
+            </div>
+            
+            <button id="swap-currencies" class="mt-7 p-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition duration-150 transform hover:rotate-12" aria-label="Swap Currencies">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+            </button>
+
+            <div class="flex-1">
+                <label for="currency-to" class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                <select id="currency-to" class="w-full p-3 border-2 border-yellow-300 rounded-lg text-gray-900 bg-white">
+                    <option value="USD">Долар США (USD)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="mt-4 p-4 bg-yellow-100 border-l-4 border-yellow-600 rounded-lg">
+            <p class="text-lg font-medium text-gray-700">Result:</p>
+            <p id="conversion-result" class="text-2xl font-extrabold text-yellow-900 mt-1">
+                0.00 USD
+            </p>
+        </div>
+        
+        <p id="exchange-date" class="text-xs text-right text-gray-500 pt-2">
+            Last updated: Loading...
+        </p>
+    </div>
+</div>
+    </div>
+
+    
+
+</body>
+</html>
