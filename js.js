@@ -458,51 +458,51 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVideoCarousel(); 
     }
 
-// --- 7. AI Chat Initialization (ВЕРСИЯ С ПАМЯТЬЮ) ---
+// --- 7. AI Chat Initialization (ENGLISH VERSION WITH ERROR STYLING) ---
         const chatInput = document.getElementById('chat-input');
         const chatButton = document.getElementById('chat-button');
         const modelSelect = document.getElementById('model-select');
         
-        // (НОВОЕ) Находим наш новый контейнер для истории
+        // Находим наш контейнер для истории
         const chatHistoryContainer = document.getElementById('chat-history-container');
         
-        // (НОВОЕ) Это наша память. Массив, хранящий всю переписку.
+        // "Память" чата
         let conversationHistory = [];
 
-        // (НОВОЕ) Вспомогательная функция для отрисовки сообщения
+        // Вспомогательная функция для отрисовки сообщения
         function appendMessage(sender, text) {
             if (!chatHistoryContainer) return;
             
             const messageElement = document.createElement('div');
             messageElement.classList.add('mb-2');
-            
-            // 'whitespace-pre-wrap' сохраняет переносы строк от AI
-            messageElement.style.whiteSpace = 'pre-wrap'; 
+            messageElement.style.whiteSpace = 'pre-wrap'; // Сохраняет переносы строк
 
             if (sender === 'user') {
                 messageElement.classList.add('text-right');
                 messageElement.innerHTML = `<span class="inline-block p-2 bg-blue-600 text-white rounded-lg">${text}</span>`;
             } else {
+                // (УЛУЧШЕНИЕ) Ошибки (sender === 'error') теперь в красном
                 messageElement.classList.add('text-left');
-                messageElement.innerHTML = `<span class="inline-block p-2 bg-gray-700 text-white rounded-lg">${text}</span>`;
+                if (sender === 'error') {
+                    messageElement.innerHTML = `<span class="inline-block p-2 bg-red-800 text-red-100 rounded-lg">${text}</span>`;
+                } else { // 'model'
+                    messageElement.innerHTML = `<span class="inline-block p-2 bg-gray-700 text-white rounded-lg">${text}</span>`;
+                }
             }
             
             chatHistoryContainer.appendChild(messageElement);
-            
-            // Авто-скролл вниз
             chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
         }
 
-        // 1. Новая асинхронная функция для загрузки моделей (без изменений)
+        // Функция загрузки моделей
         async function populateModels() {
             try {
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
-                // (ИЗМЕНЕНО) Очищаем контейнер чата
-                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Загружаю список моделей...</p>';
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Loading model list...</p>'; // <-- Переведено
 
                 const response = await fetch('/api/getModels'); 
-                if (!response.ok) throw new Error('Не удалось получить список моделей.');
+                if (!response.ok) throw new Error('Failed to get model list.'); // <-- Переведено
 
                 const models = await response.json(); 
 
@@ -516,52 +516,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 chatButton.removeAttribute('disabled');
                 chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Готов к работе.</p>';
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Ready.</p>'; // <-- Переведено
 
             } catch (error) {
                 console.error('Failed to populate models:', error);
-                modelSelect.innerHTML = '<option value="" disabled>Ошибка загрузки</option>';
-                if (chatHistoryContainer) chatHistoryContainer.innerHTML = `<p class="text-red-500">Ошибка: ${error.message}</p>`;
+                modelSelect.innerHTML = '<option value="" disabled>Loading error</option>'; // <-- Переведено
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`; // <-- Переведено
             }
         }
 
-        // 2. Проверяем, что все элементы на месте
+        // Проверяем, что все элементы на месте
         if (chatButton && chatInput && chatHistoryContainer && modelSelect) {
             
-            // 3. Запускаем загрузку моделей
+            // Запускаем загрузку моделей
             populateModels();
 
-            // 4. (СИЛЬНО ИЗМЕНЕНО) Навешиваем клик на кнопку
+            // Навешиваем клик на кнопку
             chatButton.addEventListener('click', async () => {
-                const prompt = chatInput.value.trim(); // Убираем лишние пробелы
+                const prompt = chatInput.value.trim(); 
                 const selectedModel = modelSelect.value; 
 
-                if (!prompt) return; // Молча выходим, если поле пустое
+                if (!prompt) return; 
                 if (!selectedModel) {
-                    appendMessage('model', 'Ошибка: Модели не загружены.');
+                    appendMessage('error', 'Error: Models are not loaded.'); // <-- Переведено
                     return;
                 }
 
-                // 1. Обновляем UI (показываем вопрос юзера)
                 appendMessage('user', prompt);
-                
-                // 2. Обновляем "память"
                 conversationHistory.push({ role: 'user', text: prompt });
-                
-                // 3. Очищаем поле ввода
                 chatInput.value = '';
 
-                // 4. Блокируем кнопку и показываем "Думаю..."
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
 
                 try {
-                    // 5. Отправляем ВСЮ ИСТОРИЮ на бэкенд
                     const response = await fetch('/api/chat', { 
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            history: conversationHistory, // <-- Отправляем массив
+                            history: conversationHistory, 
                             model: selectedModel 
                         }), 
                     });
@@ -573,17 +566,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const data = await response.json();
                     
-                    // 6. Обновляем UI (показываем ответ AI)
                     appendMessage('model', data.reply);
-                    
-                    // 7. Обновляем "память" (запоминаем ответ AI)
                     conversationHistory.push({ role: 'model', text: data.reply });
 
                 } catch (error) {
                     console.error('Chat Error:', error);
-                    appendMessage('model', `Ошибка: ${error.message}`);
+                    appendMessage('error', `Error: ${error.message}`); // <-- Переведено
                 } finally {
-                    // 8. Разблокируем кнопку
                     chatButton.removeAttribute('disabled');
                     chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
