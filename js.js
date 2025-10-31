@@ -458,62 +458,103 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVideoCarousel(); 
     }
 
-    // --- 7. AI Chat Initialization ---
-    const chatInput = document.getElementById('chat-input');
-    const chatButton = document.getElementById('chat-button');
-    const chatResponseEl = document.getElementById('chat-response');
-    const modelSelect = document.getElementById('model-select'); 
-
-    if (chatButton && chatInput && chatResponseEl) {
-
-        // Навешиваем клик на кнопку
-        chatButton.addEventListener('click', async () => {
-            const prompt = chatInput.value;
-            if (!prompt) {
-                chatResponseEl.textContent = 'Ask a question first.';
-                return;
-            }
-
-            // Блокируем кнопку и показываем, что мы грузим
-            chatResponseEl.textContent = 'Thinking...';
-            chatButton.setAttribute('disabled', 'true');
-            chatButton.classList.add('opacity-50', 'cursor-not-allowed');
-
+// --- 7. AI Chat Initialization (ОБНОВЛЕННАЯ ВЕРСИЯ) ---
+        const chatInput = document.getElementById('chat-input');
+        const chatButton = document.getElementById('chat-button');
+        const chatResponseEl = document.getElementById('chat-response');
+        const modelSelect = document.getElementById('model-select');
+        
+        // 1. Новая асинхронная функция для загрузки моделей
+        async function populateModels() {
             try {
-// (НОВОЕ) Сначала читаем значение из dropdown
-                const selectedModel = modelSelect.value; 
+                // 2. Сразу блокируем кнопку, пока модели не загрузятся
+                chatButton.setAttribute('disabled', 'true');
+                chatButton.classList.add('opacity-50', 'cursor-not-allowed');
+                chatResponseEl.textContent = 'Загружаю список моделей...';
 
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    // (ИЗМЕНЕНО) Отправляем и prompt, и выбранную модель
-                    body: JSON.stringify({ 
-                        prompt: prompt, 
-                        model: selectedModel 
-                    }), 
-                });
-
+                const response = await fetch('/api/getModels'); // Вызываем наш новый бэкенд
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Server error');
+                    throw new Error('Не удалось получить список моделей.');
                 }
 
-                const data = await response.json();
+                const models = await response.json(); // Получаем массив [{id:..., name:...}]
 
-                // Показываем ответ от /api/chat
-                chatResponseEl.textContent = data.reply;
+                // 3. Очищаем <select> от "Загрузка..."
+                modelSelect.innerHTML = ''; 
 
-            } catch (error) {
-                console.error('Chat Error:', error);
-                chatResponseEl.textContent = `Error: ${error.message}`;
-            } finally {
-                // В любом случае (успех или ошибка) возвращаем кнопку
+                // 4. Заполняем <select> моделями
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id; // напр. 'gemini-2.5-flash'
+                    option.textContent = model.name; // напр. 'Gemini 2.5 Flash'
+                    modelSelect.appendChild(option);
+                });
+                
+                // 5. Разблокируем кнопку
                 chatButton.removeAttribute('disabled');
                 chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                chatResponseEl.textContent = '...'; // Готово к работе
+
+            } catch (error) {
+                console.error('Failed to populate models:', error);
+                modelSelect.innerHTML = '<option value="" disabled>Ошибка загрузки</option>';
+                chatResponseEl.textContent = `Ошибка: ${error.message}`;
+                // Кнопка останется заблокированной
             }
-        });
-    }
+        }
+
+        // 6. Проверяем, что все элементы на месте
+        if (chatButton && chatInput && chatResponseEl && modelSelect) {
+            
+            // 7. Сразу же запускаем загрузку моделей
+            populateModels();
+
+            // 8. Навешиваем клик на кнопку (код остался почти таким же)
+            chatButton.addEventListener('click', async () => {
+                const prompt = chatInput.value;
+                const selectedModel = modelSelect.value; // Читаем из <select>
+
+                if (!prompt) {
+                    chatResponseEl.textContent = 'Сначала напиши вопрос.';
+                    return;
+                }
+                if (!selectedModel) {
+                    chatResponseEl.textContent = 'Модели не загружены.';
+                    return;
+                }
+
+                // Блокируем кнопку
+                chatResponseEl.textContent = 'Думаю...';
+                chatButton.setAttribute('disabled', 'true');
+                chatButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+                try {
+                    const response = await fetch('/api/chat', { // Вызываем наш старый бэкенд
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            prompt: prompt, 
+                            model: selectedModel // Отправляем модель, которую выбрал юзер
+                        }), 
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Server error');
+                    }
+
+                    const data = await response.json();
+                    chatResponseEl.textContent = data.reply;
+
+                } catch (error) {
+                    console.error('Chat Error:', error);
+                    chatResponseEl.textContent = `Ошибка: ${error.message}`;
+                } finally {
+                    // Разблокируем кнопку
+                    chatButton.removeAttribute('disabled');
+                    chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+        }
 });
 
