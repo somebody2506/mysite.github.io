@@ -1,56 +1,64 @@
-// api/chat.js (ВЕРСИЯ 4 - ПУЛЕНЕПРОБИВАЕМАЯ)
+// api/chat.js (ВЕРСИЯ 5 - С ПАМЯТЬЮ)
 //
-// Мы больше не доверяем Google.
-// 1. Читаем ответ как .text()
-// 2. Проверяем, не пустой ли он.
-// 3. ТОЛЬКО ПОТОМ парсим как JSON.
+// Принимает 'history', а не 'prompt'
+// И форматирует его для Google
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    let rawGoogleResponse; // Переменная для отладки
+    let rawGoogleResponse;
 
     try {
-        const { prompt, model } = request.body;
-        if (!prompt || !model) {
-            return response.status(400).json({ error: 'Prompt and model are required' });
+        // 1. (ИЗМЕНЕНО) Получаем 'history' и 'model'
+        const { history, model } = request.body;
+
+        if (!model) {
+            return response.status(400).json({ error: 'Model is required' });
+        }
+        if (!history || !Array.isArray(history) || history.length === 0) {
+            return response.status(400).json({ error: 'History (array) is required' });
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
         const url = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`;
 
+        // 2. (ИЗМЕНЕНО) Превращаем наш простой массив в формат,
+        // который понимает Google (с 'parts')
+        const contents = history.map(msg => ({
+            role: msg.role,
+            parts: [{ text: msg.text }]
+        }));
+
+        // 3. (ИЗМЕНЕНО) Отправляем Google 'contents'
         const apiRequestBody = {
-            contents: [{ parts: [{ text: prompt }] }]
+            contents: contents 
         };
 
-        // 1. Отправляем запрос в Google
+        // --- Остальная часть кода (наш "пуленепробиваемый" fetch) ---
+        // --- остается без изменений ---
+        
         const apiResponse = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(apiRequestBody),
         });
 
-        // 2. ЧИТАЕМ ОТВЕТ КАК ТЕКСТ (!!!)
         rawGoogleResponse = await apiResponse.text();
 
-        // 3. ПРОВЕРЯЕМ, не пустой ли он
         if (!rawGoogleResponse) {
             console.error('Google API returned an empty response.');
             throw new Error('Google returned an empty response.');
         }
 
-        // 4. ТЕПЕРЬ ПЫТАЕМСЯ ПАРСИТЬ
         const data = JSON.parse(rawGoogleResponse);
 
-        // 5. Проверяем, была ли это ошибка (уже из JSON)
         if (!apiResponse.ok || data.error) {
             console.error('Google API Error (parsed from JSON):', data.error);
             throw new Error(data.error?.message || 'Google API Error');
         }
         
-        // 6. Обрабатываем УСПЕШНЫЙ ответ
         if (!data.candidates || !data.candidates[0]) {
             console.warn('No candidates found (safety block?):', rawGoogleResponse);
             throw new Error('Google returned no answer (likely a safety block).');
@@ -63,19 +71,13 @@ export default async function handler(request, response) {
         }
 
         const text = data.candidates[0].content.parts[0].text;
-
-        // 7. Отправляем чистый текст обратно
         response.status(200).json({ reply: text });
 
     } catch (error) {
-        // ЭТОТ БЛОК ТЕПЕРЬ ПОЙМАЕТ ВСЁ
         console.error('Internal Server Error (chat):', error.message);
-        
-        // (Для отладки) Если ошибка была в парсинге, логируем сырой ответ
-        if (error.name === 'SyntaxError') { // SyntaxError = это ошибка JSON.parse()
+        if (error.name === 'SyntaxError') { 
             console.error('Failed to parse Google response:', rawGoogleResponse);
         }
-        
         response.status(500).json({ error: error.message || 'Failed to fetch from Gemini' });
     }
 }

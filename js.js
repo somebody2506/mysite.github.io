@@ -458,83 +458,111 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVideoCarousel(); 
     }
 
-// --- 7. AI Chat Initialization (ОБНОВЛЕННАЯ ВЕРСИЯ) ---
+// --- 7. AI Chat Initialization (ВЕРСИЯ С ПАМЯТЬЮ) ---
         const chatInput = document.getElementById('chat-input');
         const chatButton = document.getElementById('chat-button');
-        const chatResponseEl = document.getElementById('chat-response');
         const modelSelect = document.getElementById('model-select');
         
-        // 1. Новая асинхронная функция для загрузки моделей
+        // (НОВОЕ) Находим наш новый контейнер для истории
+        const chatHistoryContainer = document.getElementById('chat-history-container');
+        
+        // (НОВОЕ) Это наша память. Массив, хранящий всю переписку.
+        let conversationHistory = [];
+
+        // (НОВОЕ) Вспомогательная функция для отрисовки сообщения
+        function appendMessage(sender, text) {
+            if (!chatHistoryContainer) return;
+            
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('mb-2');
+            
+            // 'whitespace-pre-wrap' сохраняет переносы строк от AI
+            messageElement.style.whiteSpace = 'pre-wrap'; 
+
+            if (sender === 'user') {
+                messageElement.classList.add('text-right');
+                messageElement.innerHTML = `<span class="inline-block p-2 bg-blue-600 text-white rounded-lg">${text}</span>`;
+            } else {
+                messageElement.classList.add('text-left');
+                messageElement.innerHTML = `<span class="inline-block p-2 bg-gray-700 text-white rounded-lg">${text}</span>`;
+            }
+            
+            chatHistoryContainer.appendChild(messageElement);
+            
+            // Авто-скролл вниз
+            chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+        }
+
+        // 1. Новая асинхронная функция для загрузки моделей (без изменений)
         async function populateModels() {
             try {
-                // 2. Сразу блокируем кнопку, пока модели не загрузятся
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
-                chatResponseEl.textContent = 'Loading models list...';
+                // (ИЗМЕНЕНО) Очищаем контейнер чата
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Загружаю список моделей...</p>';
 
-                const response = await fetch('/api/getModels'); // Вызываем наш новый бэкенд
-                if (!response.ok) {
-                    throw new Error("Can't get models list.");
-                }
+                const response = await fetch('/api/getModels'); 
+                if (!response.ok) throw new Error('Не удалось получить список моделей.');
 
-                const models = await response.json(); // Получаем массив [{id:..., name:...}]
+                const models = await response.json(); 
 
-                // 3. Очищаем <select> от "Загрузка..."
                 modelSelect.innerHTML = ''; 
-
-                // 4. Заполняем <select> моделями
                 models.forEach(model => {
                     const option = document.createElement('option');
-                    option.value = model.id; // напр. 'gemini-2.5-flash'
-                    option.textContent = model.name; // напр. 'Gemini 2.5 Flash'
+                    option.value = model.id; 
+                    option.textContent = model.name; 
                     modelSelect.appendChild(option);
                 });
                 
-                // 5. Разблокируем кнопку
                 chatButton.removeAttribute('disabled');
                 chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                chatResponseEl.textContent = '...'; // Готово к работе
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = '<p class="text-gray-400">Готов к работе.</p>';
 
             } catch (error) {
                 console.error('Failed to populate models:', error);
-                modelSelect.innerHTML = '<option value="" disabled>Loading error</option>';
-                chatResponseEl.textContent = `Error: ${error.message}`;
-                // Кнопка останется заблокированной
+                modelSelect.innerHTML = '<option value="" disabled>Ошибка загрузки</option>';
+                if (chatHistoryContainer) chatHistoryContainer.innerHTML = `<p class="text-red-500">Ошибка: ${error.message}</p>`;
             }
         }
 
-        // 6. Проверяем, что все элементы на месте
-        if (chatButton && chatInput && chatResponseEl && modelSelect) {
+        // 2. Проверяем, что все элементы на месте
+        if (chatButton && chatInput && chatHistoryContainer && modelSelect) {
             
-            // 7. Сразу же запускаем загрузку моделей
+            // 3. Запускаем загрузку моделей
             populateModels();
 
-            // 8. Навешиваем клик на кнопку (код остался почти таким же)
+            // 4. (СИЛЬНО ИЗМЕНЕНО) Навешиваем клик на кнопку
             chatButton.addEventListener('click', async () => {
-                const prompt = chatInput.value;
-                const selectedModel = modelSelect.value; // Читаем из <select>
+                const prompt = chatInput.value.trim(); // Убираем лишние пробелы
+                const selectedModel = modelSelect.value; 
 
-                if (!prompt) {
-                    chatResponseEl.textContent = 'Write a question first.';
-                    return;
-                }
+                if (!prompt) return; // Молча выходим, если поле пустое
                 if (!selectedModel) {
-                    chatResponseEl.textContent = 'Models are not loaded.';
+                    appendMessage('model', 'Ошибка: Модели не загружены.');
                     return;
                 }
 
-                // Блокируем кнопку
-                chatResponseEl.textContent = 'Thinking...';
+                // 1. Обновляем UI (показываем вопрос юзера)
+                appendMessage('user', prompt);
+                
+                // 2. Обновляем "память"
+                conversationHistory.push({ role: 'user', text: prompt });
+                
+                // 3. Очищаем поле ввода
+                chatInput.value = '';
+
+                // 4. Блокируем кнопку и показываем "Думаю..."
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
 
                 try {
-                    const response = await fetch('/api/chat', { // Вызываем наш старый бэкенд
+                    // 5. Отправляем ВСЮ ИСТОРИЮ на бэкенд
+                    const response = await fetch('/api/chat', { 
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            prompt: prompt, 
-                            model: selectedModel // Отправляем модель, которую выбрал юзер
+                            history: conversationHistory, // <-- Отправляем массив
+                            model: selectedModel 
                         }), 
                     });
 
@@ -544,13 +572,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     const data = await response.json();
-                    chatResponseEl.textContent = data.reply;
+                    
+                    // 6. Обновляем UI (показываем ответ AI)
+                    appendMessage('model', data.reply);
+                    
+                    // 7. Обновляем "память" (запоминаем ответ AI)
+                    conversationHistory.push({ role: 'model', text: data.reply });
 
                 } catch (error) {
                     console.error('Chat Error:', error);
-                    chatResponseEl.textContent = `Error: ${error.message}`;
+                    appendMessage('model', `Ошибка: ${error.message}`);
                 } finally {
-                    // Разблокируем кнопку
+                    // 8. Разблокируем кнопку
                     chatButton.removeAttribute('disabled');
                     chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
                 }

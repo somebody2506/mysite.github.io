@@ -339,10 +339,11 @@
             Send
         </button>
         
-        <div class="mt-4 p-4 bg-gray-800 border-l-4 border-blue-500 rounded-lg min-h-[100px]">
-            <p class="text-lg font-medium text-gray-300">Gemini:</p>
-            <p id="chat-response" class="text-xl font-bold text-white mt-1 whitespace-pre-wrap">
-            </p>
+        <div 
+            id="chat-history-container" 
+            class="mt-4 p-4 bg-gray-800 border-l-4 border-blue-500 rounded-lg min-h-[100px] max-h-96 overflow-y-auto"
+        >
+            <p class="text-gray-400">...</p>
         </div>
     </div>
 </div>
