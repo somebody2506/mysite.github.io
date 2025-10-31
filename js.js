@@ -110,126 +110,147 @@ function stopTimer() {
 // ===================================
 // 2. CURRENCY CONVERTER LOGIC (GLOBAL)
 // ===================================
-const API_KEY = 'YOUR_API_KEY'; // !!! Получите свой бесплатный ключ на https://www.exchangerate-api.com/
-const EXCHANGE_API_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`; 
+const API_KEY = 'YOUR_API_KEY'; // !!! СЮДА ВСТАВЬТЕ ВАШ КЛЮЧ
+const EXCHANGE_API_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`; 
 
 let exchangeRates = {}; // Будет заполнено из API
 let latestExchangeDate = '';
 
 // Main conversion logic
 function convertCurrency() {
-    const amountFromInput = document.getElementById('amount-from');
-    const resultDisplay = document.getElementById('conversion-result');
-    const currencyFromSelect = document.getElementById('currency-from');
-    const currencyToSelect = document.getElementById('currency-to');
+    const amountFromInput = document.getElementById('amount-from');
+    const resultDisplay = document.getElementById('conversion-result');
+    const currencyFromSelect = document.getElementById('currency-from');
+    const currencyToSelect = document.getElementById('currency-to');
 
-    if (!amountFromInput || !resultDisplay || !currencyFromSelect || !currencyToSelect) return;
+    if (!amountFromInput || !resultDisplay || !currencyFromSelect || !currencyToSelect) return;
 
-    const amount = parseFloat(amountFromInput.value);
-    if (isNaN(amount) || amount <= 0) {
-        resultDisplay.textContent = '0.00 ' + currencyToSelect.value;
-        return;
-    }
+    const amount = parseFloat(amountFromInput.value);
+    if (isNaN(amount) || amount <= 0) {
+        resultDisplay.textContent = '0.00 ' + currencyToSelect.value;
+        return;
+    }
 
-    const fromCode = currencyFromSelect.value;
-    const toCode = currencyToSelect.value;
-        
-    const rateFrom = exchangeRates[fromCode] ? exchangeRates[fromCode].rate : 1;
-    const rateTo = exchangeRates[toCode] ? exchangeRates[toCode].rate : 1;
-        
-    // Формула: (Сумма * Курс_От) / Курс_В
-    const result = (amount * rateFrom) / rateTo;
-        
-    resultDisplay.textContent = `${result.toFixed(2)} ${toCode}`;
+    const fromCode = currencyFromSelect.value;
+    const toCode = currencyToSelect.value;
+        
+    // Получаем курсы относительно UAH, которые мы рассчитали при загрузке
+    const rateFrom = exchangeRates[fromCode] ? exchangeRates[fromCode].rate : 1;
+    const rateTo = exchangeRates[toCode] ? exchangeRates[toCode].rate : 1;
+        
+    // Формула: (Сумма * Курс_Откуда_к_UAH) / Курс_Куда_к_UAH
+    // Пример: 100 USD в EUR
+    // rateFrom (USD) = 40.5
+    // rateTo (EUR) = 43.2
+    // (100 * 40.5) / 43.2 = 93.75 EUR
+    const result = (amount * rateFrom) / rateTo;
+        
+    resultDisplay.textContent = `${result.toFixed(2)} ${toCode}`;
 }
 
 // Function to populate the <select> fields
 function populateCurrencySelectors() {
-    const currencyFromSelect = document.getElementById('currency-from');
-    const currencyToSelect = document.getElementById('currency-to');
-    
-    if (!currencyFromSelect || !currencyToSelect) return;
-    
-    const sortedCodes = Object.keys(exchangeRates).sort();
-    const currentFromValue = currencyFromSelect.value;
-    const currentToValue = currencyToSelect.value;
-        
-    // Очищаем списки
-    while (currencyFromSelect.options.length > 1) { currencyFromSelect.remove(1); }
-    while (currencyToSelect.options.length > 1) { currencyToSelect.remove(1); }
-        
-    // Добавляем все валюты
-    sortedCodes.forEach(code => {
-        if (code !== 'UAH') {
-            const option = document.createElement('option');
-            option.value = code;
-            option.textContent = `${exchangeRates[code].txt} (${code})`;
-                
-            currencyFromSelect.appendChild(option.cloneNode(true));
-            currencyToSelect.appendChild(option);
-        }
-    });
-        
-    // Восстанавливаем выбранные значения
-    currencyFromSelect.value = currentFromValue;
-    currencyToSelect.value = currentToValue;
+    const currencyFromSelect = document.getElementById('currency-from');
+    const currencyToSelect = document.getElementById('currency-to');
+    
+    if (!currencyFromSelect || !currencyToSelect) return;
+    
+    const sortedCodes = Object.keys(exchangeRates).sort();
+    const currentFromValue = currencyFromSelect.value;
+    const currentToValue = currencyToSelect.value;
+        
+    // Очищаем списки (оставляем первый элемент 'UAH' в списке "From")
+    while (currencyFromSelect.options.length > 1) { currencyFromSelect.remove(1); }
+    // Очищаем *весь* список "To"
+    while (currencyToSelect.options.length > 0) { currencyToSelect.remove(0); }
+        
+    // Добавляем все валюты
+    sortedCodes.forEach(code => {
+        // 'UAH' уже жестко закодирован в HTML для "From", пропускаем его
+        if (code !== 'UAH') {
+            const option = document.createElement('option');
+            option.value = code;
+            // У этого API нет полных имен (txt), поэтому просто используем код
+            option.textContent = code; 
+            
+            currencyFromSelect.appendChild(option.cloneNode(true));
+            currencyToSelect.appendChild(option);
+        }
+    });
+        
+    // Восстанавливаем выбранные значения
+    currencyFromSelect.value = currentFromValue;
+    // Устанавливаем USD по умолчанию для 'To', если он доступен
+    currencyToSelect.value = currentToValue ? currentToValue : 'USD';
 }
 
-// Function to fetch and parse NBU XML data
+// Function to fetch and parse NBU XML data (НОВАЯ ВЕРСИЯ)
 async function fetchExchangeRates() {
-    const dateDisplay = document.getElementById('exchange-date');
+    const dateDisplay = document.getElementById('exchange-date');
 
-    if (dateDisplay) { dateDisplay.textContent = 'Last updated: Loading...'; }
-    
-    try {
-        const response = await fetch(EXCHANGE_API_URL);
-        
-        if (!response.ok) { throw new Error(`HTTP Error: ${response.status} ${response.statusText}`); }
+    if (dateDisplay) { dateDisplay.textContent = 'Last updated: Loading...'; }
 
-        // Поскольку мы используем прокси, ответ должен быть в формате JSON, содержащем исходный текст XML
-        const data = await response.json(); 
-        const text = data.contents;
+    // Проверка, что ключ API был изменен
+    if (API_KEY === '7c88b240c96c83d83e28c124') {
+        const errorMsg = 'Error: API_KEY not set in js.js!';
+        console.error("Please get a free API key from exchangerate-api.com and update API_KEY in js.js");
+        if (dateDisplay) { dateDisplay.textContent = `Last updated: ${errorMsg}`; }
+        return;
+    }
+    
+    try {
+        const response = await fetch(EXCHANGE_API_URL);
+        
+        if (!response.ok) { throw new Error(`HTTP Error: ${response.status} ${response.statusText}`); }
 
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(text, "text/xml");
-        
-        if (xmlDoc.getElementsByTagName('parsererror').length > 0) { throw new Error("Parsing Error: Invalid XML content."); }
-            
-        const currencies = xmlDoc.getElementsByTagName('currency');
-        if (currencies.length === 0) { throw new Error("Data Error: No currency entries found."); }
+        // Парсим ответ как JSON, а не XML
+        const data = await response.json(); 
+        
+        if (data.result === 'error') {
+            throw new Error(`API Error: ${data['error-type']}`);
+        }
 
-        // Парсинг и заполнение
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const code = currency.getElementsByTagName('cc')[0].textContent;
-            const rate = parseFloat(currency.getElementsByTagName('rate')[0].textContent);
-            const txt = currency.getElementsByTagName('txt')[0].textContent;
-            const date = currency.getElementsByTagName('exchangedate')[0].textContent;
+        // data.conversion_rates - это курсы относительно USD (базовая валюта API)
+        // Пример: { "USD": 1, "UAH": 40.5, "EUR": 0.94 }
+        const rates = data.conversion_rates;
+        
+        // Нам нужен курс UAH к USD, чтобы пересчитать все
+        const uahPerUsd = rates['UAH'];
+        if (!uahPerUsd) {
+            throw new Error("UAH rate not found in API response.");
+        }
 
-            exchangeRates[code] = { rate: rate, txt: txt, exchangedate: date };
-            if (date && date !== latestExchangeDate) { latestExchangeDate = date; }
-        }
+        // Очищаем старые курсы
+        exchangeRates = {}; 
+        latestExchangeDate = new Date(data.time_last_update_unix * 1000).toLocaleDateString();
 
-        // Успех
-        populateCurrencySelectors();
-        if (dateDisplay) { dateDisplay.textContent = `Last updated: ${latestExchangeDate}`; }
-        convertCurrency();
+        // Добавляем UAH (курс 1:1 к самому себе)
+        exchangeRates['UAH'] = { rate: 1, txt: 'Українська гривня' };
+        
+        // Пересчитываем все курсы относительно UAH
+        // Формула: (Курс UAH к USD) / (Курс ВАЛЮТЫ к USD) = Курс ВАЛЮТЫ к UAH
+        for (const code in rates) {
+            if (code !== 'UAH') {
+                const uahPerCode = uahPerUsd / rates[code];
+                exchangeRates[code] = { 
+                    rate: uahPerCode, 
+                    txt: code // Используем код вместо полного имени
+                };
+            }
+        }
 
-    } catch (error) {
-        // Вывод ошибки на сайт
-        console.error('NBU Fetch Error:', error);
-        let displayMessage = 'Error loading data.';
-        
-        if (error.name === 'TypeError' || String(error).includes('Failed to fetch')) {
-             displayMessage = 'Error: CORS/Network Blocked. Please run via Web Server!';
-        } else {
-             displayMessage = `Error: ${error.message}`;
-        }
-        
-        if (dateDisplay) { dateDisplay.textContent = `Last updated: ${displayMessage}`; }
-    }
+        // Успех
+        populateCurrencySelectors();
+        if (dateDisplay) { dateDisplay.textContent = `Last updated: ${latestExchangeDate}`; }
+        convertCurrency();
+
+    } catch (error) {
+        // Вывод ошибки на сайт
+        console.error('Fetch Error:', error);
+        let displayMessage = `Error: ${error.message}`;
+        if (dateDisplay) { dateDisplay.textContent = `Last updated: ${displayMessage}`; }
+    }
 }
-
 
 // ===================================
 // 3. VIDEO CAROUSEL LOGIC (GLOBAL)
