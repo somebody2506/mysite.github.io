@@ -19,33 +19,24 @@ export default async function handler(request, response) {
 
         const data = await apiResponse.json();
 
-        console.log('RAW GOOGLE RESPONSE:', JSON.stringify(data, null, 2)); 
+        // --------------------------------------------------------
+        // ВОТ ОН, НОВЫЙ ФИЛЬТР
+        // --------------------------------------------------------
+        const models = data.models
+            .filter(model => 
+                // Просто найди всё, что умеет генерировать контент
+                model.supportedGenerationMethods?.includes("generateContent")
+            )
+            .map(model => ({
+                // ID = полное имя, которое ждет API (напр. "models/gemini-2.5-pro")
+                id: model.name, 
+                // Имя = красивое имя для юзера (напр. "Gemini 2.5 Pro")
+                name: model.displayName 
+            }));
+        // --------------------------------------------------------
 
-        // Карта для хранения уникальных моделей
-        const modelMap = new Map();
-
-        // Фильтруем список от Google
-        data.models.forEach(model => {
-            // 1. Нас интересуют только модели, которые умеют "генерировать контент"
-            // 2. И у которых есть 'baseModelId' (чтобы отсечь служебные)
-            if (model.supportedGenerationMethods?.includes("generateContent") && model.baseModelId) {
-                
-                // 2. Мы сохраняем в карту. Это автоматически убирает дубликаты
-                // (например, 'gemini-1.5-pro-001' и 'gemini-1.5-pro-latest')
-                // и оставляет только одно имя для каждой базовой модели.
-                modelMap.set(model.baseModelId, model.displayName);
-            }
-        });
-
-        // 3. Превращаем карту обратно в массив
-        // ( [ ['gemini-2.5-flash', 'Gemini 2.5 Flash'], ... ] )
-        const uniqueModels = [...modelMap.entries()].map(([id, name]) => ({
-            id: id,
-            name: name
-        }));
-
-        // 4. Отправляем чистый список на сайт
-        response.status(200).json(uniqueModels);
+        // Отправляем отфильтрованный список на сайт
+        response.status(200).json(models);
 
     } catch (error) {
         console.error('Internal Server Error (getModels):', error.message);
