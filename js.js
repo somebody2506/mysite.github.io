@@ -457,15 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Этот вызов обновит кнопки И точки при первой загрузке (спрячет "назад")
         updateVideoCarousel(); 
     }
-});
-
-// =========================================================
-// 7. AI CHAT LOGIC (НОВЫЙ БЛОК)
-// =========================================================
-
-// Мы снова используем DOMContentLoaded, но это нормально.
-// Код просто добавится в очередь и выполнится, когда страница загрузится.
-document.addEventListener('DOMContentLoaded', () => {
 
     // --- 7. AI Chat Initialization ---
     const chatInput = document.getElementById('chat-input');
@@ -473,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatResponseEl = document.getElementById('chat-response');
 
     if (chatButton && chatInput && chatResponseEl) {
-        
+
         // Навешиваем клик на кнопку
         chatButton.addEventListener('click', async () => {
             const prompt = chatInput.value;
@@ -503,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const data = await response.json();
-                
+
                 // Показываем ответ от /api/chat
                 chatResponseEl.textContent = data.reply;
 
@@ -518,3 +509,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
