@@ -470,11 +470,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 2. Сразу блокируем кнопку, пока модели не загрузятся
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
-                chatResponseEl.textContent = 'Загружаю список моделей...';
+                chatResponseEl.textContent = 'Loading models list...';
 
                 const response = await fetch('/api/getModels'); // Вызываем наш новый бэкенд
                 if (!response.ok) {
-                    throw new Error('Не удалось получить список моделей.');
+                    throw new Error("Can't get models list.");
                 }
 
                 const models = await response.json(); // Получаем массив [{id:..., name:...}]
@@ -497,8 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error('Failed to populate models:', error);
-                modelSelect.innerHTML = '<option value="" disabled>Ошибка загрузки</option>';
-                chatResponseEl.textContent = `Ошибка: ${error.message}`;
+                modelSelect.innerHTML = '<option value="" disabled>Loading error</option>';
+                chatResponseEl.textContent = `Error: ${error.message}`;
                 // Кнопка останется заблокированной
             }
         }
@@ -515,16 +515,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const selectedModel = modelSelect.value; // Читаем из <select>
 
                 if (!prompt) {
-                    chatResponseEl.textContent = 'Сначала напиши вопрос.';
+                    chatResponseEl.textContent = 'Write a question first.';
                     return;
                 }
                 if (!selectedModel) {
-                    chatResponseEl.textContent = 'Модели не загружены.';
+                    chatResponseEl.textContent = 'Models are not loaded.';
                     return;
                 }
 
                 // Блокируем кнопку
-                chatResponseEl.textContent = 'Думаю...';
+                chatResponseEl.textContent = 'Thinking...';
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } catch (error) {
                     console.error('Chat Error:', error);
-                    chatResponseEl.textContent = `Ошибка: ${error.message}`;
+                    chatResponseEl.textContent = `Error: ${error.message}`;
                 } finally {
                     // Разблокируем кнопку
                     chatButton.removeAttribute('disabled');
