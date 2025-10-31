@@ -462,6 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     const chatButton = document.getElementById('chat-button');
     const chatResponseEl = document.getElementById('chat-response');
+    const modelSelect = document.getElementById('model-select'); 
 
     if (chatButton && chatInput && chatResponseEl) {
 
@@ -479,13 +480,19 @@ document.addEventListener('DOMContentLoaded', () => {
             chatButton.classList.add('opacity-50', 'cursor-not-allowed');
 
             try {
-                // Отправляем запрос НЕ в Google, а на НАШ собственный бэкенд /api/chat
+// (НОВОЕ) Сначала читаем значение из dropdown
+                const selectedModel = modelSelect.value; 
+
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ prompt: prompt }),
+                    // (ИЗМЕНЕНО) Отправляем и prompt, и выбранную модель
+                    body: JSON.stringify({ 
+                        prompt: prompt, 
+                        model: selectedModel 
+                    }), 
                 });
 
                 if (!response.ok) {
