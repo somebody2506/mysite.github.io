@@ -45,10 +45,6 @@ function styleVolumeSlider(slider) {
     slider.style.background = `linear-gradient(to right, ${startColor} 0%, ${endColor} ${percentage}%, ${unfilledColor} ${percentage}%, ${unfilledColor} 100%)`;
 }
 
-// --- Scroll Lock ---
-function preventDefault(e) { e.preventDefault(); }
-function disableScroll() { document.body.addEventListener('touchmove', preventDefault, { passive: false }); }
-function enableScroll() { document.body.removeEventListener('touchmove', preventDefault, { passive: false }); }
 
 // --- Playtime Persistence Logic (Cookies) ---
 const COOKIE_KEY = 'seal_playtime_seconds';
