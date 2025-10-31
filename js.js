@@ -458,37 +458,28 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVideoCarousel(); 
     }
 
-// --- 7. AI Chat Initialization (ENGLISH, WITH MEMORY & DEFAULT) ---
+// --- 7. AI Chat Initialization (ENTER-TO-SEND & "THINKING" INDICATOR) ---
         const chatInput = document.getElementById('chat-input');
         const chatButton = document.getElementById('chat-button');
         const modelSelect = document.getElementById('model-select');
         const chatHistoryContainer = document.getElementById('chat-history-container');
 
-        // --- (НОВОЕ) Ключи для localStorage и твоя модель по умолчанию ---
         const MODEL_PREFERENCE_KEY = 'gemini_model_preference';
-        const DEFAULT_MODEL_ID = 'models/gemini-2.5-flash'; // Модель, которую ты хочешь по умолчанию
+        const DEFAULT_MODEL_ID = 'models/gemini-2.5-flash';
 
         let conversationHistory = [];
 
-        // (НОВОЕ) Функция для установки <select> после загрузки
         function setModelSelection(models) {
-            // 1. Пытаемся найти сохраненную модель
             const savedModel = localStorage.getItem(MODEL_PREFERENCE_KEY);
-            
-            // Проверяем, существует ли сохраненная модель в списке, который пришел с API
             const savedModelExists = models.some(model => model.id === savedModel);
 
             if (savedModel && savedModelExists) {
-                // Если да - ставим ее
                 modelSelect.value = savedModel;
             } else {
-                // 2. Если нет - ставим твою дефолтную (gemini-2.5-flash)
                 const defaultModelExists = models.some(model => model.id === DEFAULT_MODEL_ID);
-                
                 if (defaultModelExists) {
                     modelSelect.value = DEFAULT_MODEL_ID;
                 }
-                // (Если даже ее нет, просто выберется первая в списке)
             }
         }
 
@@ -516,7 +507,6 @@ document.addEventListener('DOMContentLoaded', () => {
             chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
         }
 
-        // Функция загрузки моделей (ИЗМЕНЕНА)
         async function populateModels() {
             try {
                 chatButton.setAttribute('disabled', 'true');
@@ -526,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('/api/getModels'); 
                 if (!response.ok) throw new Error('Failed to get model list.');
 
-                const models = await response.json(); // Получаем массив [{id:..., name:...}]
+                const models = await response.json(); 
 
                 modelSelect.innerHTML = ''; 
                 models.forEach(model => {
@@ -536,11 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     modelSelect.appendChild(option);
                 });
                 
-                // --- (НОВОЕ) ---
-                // После того как список заполнен,
-                // вызываем функцию, которая выберет нужный <option>
                 setModelSelection(models); 
-                // --- (КОНЕЦ НОВОГО) ---
                 
                 chatButton.removeAttribute('disabled');
                 chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -553,19 +539,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Проверяем, что все элементы на месте (ИЗМЕНЕНО)
+        // Проверяем, что все элементы на месте
         if (chatButton && chatInput && chatHistoryContainer && modelSelect) {
             
-            // 1. Запускаем загрузку моделей (как и раньше)
             populateModels();
 
-            // 2. (НОВОЕ) Вешаем listener на <select>, чтобы СОХРАНЯТЬ выбор
             modelSelect.addEventListener('change', () => {
                 localStorage.setItem(MODEL_PREFERENCE_KEY, modelSelect.value);
             });
 
-            // 3. Вешаем listener на кнопку (без изменений)
-            chatButton.addEventListener('click', async () => {
+            // (ИЗМЕНЕНО) Создаем функцию-обработчик отправки
+            const handleSend = async () => {
                 const prompt = chatInput.value.trim(); 
                 const selectedModel = modelSelect.value; 
 
@@ -577,10 +561,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 appendMessage('user', prompt);
                 conversationHistory.push({ role: 'user', text: prompt });
-                chatInput.value = '';
+                chatInput.value = ''; // Очищаем инпут СРАЗУ
 
                 chatButton.setAttribute('disabled', 'true');
                 chatButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+                // --- (НОВОЕ) Индикатор "Думаю..." ---
+                // 1. Добавляем сообщение "Thinking..."
+                appendMessage('model', 'Thinking...');
+                // 2. Находим его, чтобы потом обновить
+                const thinkingMessageElement = chatHistoryContainer.lastElementChild;
+                const thinkingSpan = thinkingMessageElement ? thinkingMessageElement.querySelector('span') : null;
+                // --- (КОНЕЦ НОВОГО) ---
 
                 try {
                     const response = await fetch('/api/chat', { 
@@ -599,16 +591,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const data = await response.json();
                     
-                    appendMessage('model', data.reply);
+                    // --- (ИЗМЕНЕНО) ---
+                    // 3. Обновляем "Thinking..." настоящим ответом
+                    if (thinkingSpan) {
+                        thinkingSpan.textContent = data.reply;
+                    } else {
+                        // Запасной вариант, если что-то пошло не так
+                        appendMessage('model', data.reply);
+                    }
+                    // --- (КОНЕЦ ИЗМЕНЕНИЯ) ---
+                    
                     conversationHistory.push({ role: 'model', text: data.reply });
 
                 } catch (error) {
                     console.error('Chat Error:', error);
-                    appendMessage('error', `Error: ${error.message}`);
+                    
+                    // --- (ИЗМЕНЕНО) ---
+                    // 4. Обновляем "Thinking..." текстом ошибки
+                    if (thinkingSpan) {
+                        thinkingSpan.textContent = `Error: ${error.message}`;
+                        thinkingSpan.classList.replace('bg-gray-700', 'bg-red-800');
+                        thinkingSpan.classList.add('text-red-100');
+                    } else {
+                        // Запасной вариант
+                        appendMessage('error', `Error: ${error.message}`);
+                    }
+                    // --- (КОНЕЦ ИЗМЕНЕНИЯ) ---
+
                 } finally {
                     chatButton.removeAttribute('disabled');
                     chatButton.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
+            };
+            
+            // 1. Вешаем обработчик на КЛИК
+            chatButton.addEventListener('click', handleSend);
+
+            // 2. (НОВОЕ) Вешаем обработчик на НАЖАТИЕ КЛАВИШИ
+            chatInput.addEventListener('keydown', (event) => {
+                // Если нажат Enter И НЕ нажат Shift
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault(); // Запретить перенос строки
+                    handleSend();           // Вызвать нашу функцию отправки
+                }
+                // Если нажат Shift + Enter, 'if' не сработает,
+                // и браузер по умолчанию добавит новую строку.
             });
         }
 });
