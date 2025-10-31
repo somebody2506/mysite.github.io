@@ -19,7 +19,7 @@ export default async function handler(request, response) {
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`;
 
         const apiRequestBody = {
             contents: [{ parts: [{ text: prompt }] }]
