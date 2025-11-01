@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-// --- 4. Radio Control Initialization (С ИНДИКАТОРОМ "LOADING...") ---
+// --- 4. Radio Control Initialization (СЛУШАЕМ СОБЫТИЕ "PLAYING") ---
      if (toggleBtn && audio) {
         
         const streamUrlBase = 'https://stream-178.zeno.fm/9q3ez3k3fchvv';
@@ -388,57 +388,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 audio.pause(); 
                 audio.src = ''; 
             } else { 
-                // (ИЗМЕНЕНО) Показываем "Loading..." и блокируем кнопку
+                // 1. Показываем "Loading..." при клике
                 toggleBtn.textContent = 'Loading...';
                 toggleBtn.setAttribute('disabled', 'true');
                 toggleBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 toggleBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-                toggleBtn.classList.add('bg-gray-500'); // Серый фон для загрузки
+                toggleBtn.classList.add('bg-gray-500'); // Серый фон
 
-                // Запускаем загрузку
+                // 2. Запускаем загрузку
                 audio.src = `${streamUrlBase}?_cachebust=${Date.now()}`;
                 audio.load(); 
                 
-                audio.play().then(() => {
-                    // 'play' сработает, как только буфер будет готов
-                }).catch(error => { 
+                audio.play().catch(error => { 
                     console.error("Audio Playback Error:", error); 
-                    // Если ошибка, вручную сбрасываем кнопку
-                    audio.dispatchEvent(new Event('pause')); // Вызовем 'pause', чтобы сбросить UI
+                    // Если play() падает, вручную сбрасываем кнопку
+                    audio.dispatchEvent(new Event('pause')); 
                 }); 
             }
          });
 
-         audio.addEventListener('play', () => {
+         // (ИЗМЕНЕНО) Срабатывает, когда МУЗЫКА НАЧАЛА ИГРАТЬ
+         audio.addEventListener('playing', () => {
              isPlaying = true; 
             startTimer();
             
-            // (ИЗМЕНЕНО) Восстанавливаем кнопку в состояние "Stop"
+            // 3. Восстанавливаем кнопку в состояние "Stop"
              toggleBtn.textContent = 'Stop';
             toggleBtn.removeAttribute('disabled');
             toggleBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-500');
              toggleBtn.classList.add('bg-red-500', 'hover:bg-red-600');
          });
+ 
+         // (НОВОЕ) Срабатывает, если стрим остановился для буферизации
+         audio.addEventListener('waiting', () => {
+            toggleBtn.textContent = 'Loading...';
+            toggleBtn.setAttribute('disabled', 'true');
+            toggleBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-500');
+         });
+
+         // (ИЗМЕНЕНО) Срабатывает при 'pause()' или при ошибке
          audio.addEventListener('pause', () => {
              isPlaying = false; 
             stopTimer();
 
-            // (ИЗМЕНЕНО) Восстанавливаем кнопку в состояние "Play"
+            // 4. Восстанавливаем кнопку в состояние "Play"
              toggleBtn.textContent = 'Play';
             toggleBtn.removeAttribute('disabled');
-            toggleBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-500');
+            toggleBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-500', 'bg-red-500', 'hover:bg-red-600');
              toggleBtn.classList.add('bg-green-500', 'hover:bg-green-600');
          });
+ 
          audio.addEventListener('error', (e) => {
              console.error("Audio Load Error. Check stream URL:", e);
-             isPlaying = false; 
-            stopTimer(); 
-            
-            // (ИЗМЕНЕНО) Восстанавливаем кнопку в состояние "Play" при ошибке
-            toggleBtn.textContent = 'Play';
-            toggleBtn.removeAttribute('disabled');
-            toggleBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-500');
-             toggleBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+            // 5. Принудительно вызываем 'pause', чтобы сбросить UI
+             audio.dispatchEvent(new Event('pause'));
          });
      }
     
