@@ -378,31 +378,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 4. Radio Control Initialization ---
-    if (toggleBtn && audio) {
-        toggleBtn.addEventListener('click', () => {
-            if (isPlaying) { audio.pause(); } 
-            else { audio.play().then(() => {}).catch(error => { console.error("Audio Playback Error:", error); }); }
-        });
-        audio.addEventListener('play', () => {
-            isPlaying = true; startTimer();
-            toggleBtn.textContent = 'Stop';
-            toggleBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-            toggleBtn.classList.add('bg-red-500', 'hover:bg-red-600');
-        });
-        audio.addEventListener('pause', () => {
-            isPlaying = false; stopTimer();
-            toggleBtn.textContent = 'Play';
-            toggleBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-            toggleBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-        });
-        audio.addEventListener('error', (e) => {
-            console.error("Audio Load Error. Check stream URL:", e);
-            isPlaying = false; stopTimer(); toggleBtn.textContent = 'Play';
-            toggleBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
-            toggleBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-        });
-    }
+// --- 4. Radio Control Initialization (С ИНДИКАТОРОМ "LOADING...") ---
+     if (toggleBtn && audio) {
+        
+        const streamUrlBase = 'https://stream-178.zeno.fm/9q3ez3k3fchvv';
+
+         toggleBtn.addEventListener('click', () => {
+             if (isPlaying) { 
+                audio.pause(); 
+                audio.src = ''; 
+            } else { 
+                // (ИЗМЕНЕНО) Показываем "Loading..." и блокируем кнопку
+                toggleBtn.textContent = 'Loading...';
+                toggleBtn.setAttribute('disabled', 'true');
+                toggleBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                toggleBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                toggleBtn.classList.add('bg-gray-500'); // Серый фон для загрузки
+
+                // Запускаем загрузку
+                audio.src = `${streamUrlBase}?_cachebust=${Date.now()}`;
+                audio.load(); 
+                
+                audio.play().then(() => {
+                    // 'play' сработает, как только буфер будет готов
+                }).catch(error => { 
+                    console.error("Audio Playback Error:", error); 
+                    // Если ошибка, вручную сбрасываем кнопку
+                    audio.dispatchEvent(new Event('pause')); // Вызовем 'pause', чтобы сбросить UI
+                }); 
+            }
+         });
+
+         audio.addEventListener('play', () => {
+             isPlaying = true; 
+            startTimer();
+            
+            // (ИЗМЕНЕНО) Восстанавливаем кнопку в состояние "Stop"
+             toggleBtn.textContent = 'Stop';
+            toggleBtn.removeAttribute('disabled');
+            toggleBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-500');
+             toggleBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+         });
+         audio.addEventListener('pause', () => {
+             isPlaying = false; 
+            stopTimer();
+
+            // (ИЗМЕНЕНО) Восстанавливаем кнопку в состояние "Play"
+             toggleBtn.textContent = 'Play';
+            toggleBtn.removeAttribute('disabled');
+            toggleBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-500');
+             toggleBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+         });
+         audio.addEventListener('error', (e) => {
+             console.error("Audio Load Error. Check stream URL:", e);
+             isPlaying = false; 
+            stopTimer(); 
+            
+            // (ИЗМЕНЕНО) Восстанавливаем кнопку в состояние "Play" при ошибке
+            toggleBtn.textContent = 'Play';
+            toggleBtn.removeAttribute('disabled');
+            toggleBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-500');
+             toggleBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+         });
+     }
     
     // --- 5. Currency Converter Initialization ---
     const converterAmountInput = document.getElementById('amount-from');
