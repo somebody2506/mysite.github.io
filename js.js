@@ -180,8 +180,8 @@ function populateCurrencySelectors() {
     // --- ИСПРАВЛЕНИЕ ---
     // Устанавливаем значения:
     // Либо старые (если были), либо по умолчанию (UAH -> USD)
-    currencyFromSelect.value = currentFromValue ? currentFromValue : 'UAH';
-    currencyToSelect.value = currentToValue ? currentToValue : 'USD';
+    currencyFromSelect.value = currentFromValue ? currentFromValue : 'USD';
+    currencyToSelect.value = currentToValue ? currentToValue : 'UAH';
 }
 
 // Function to fetch and parse NBU XML data (НОВАЯ ВЕРСИЯ)
