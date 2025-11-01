@@ -3,20 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preload" href="svg/mid.svg" as="image">
+
+    <title>SMBD</title>
+    
+    <meta name="description" content="Chunchunmaru enjoyer">
+    
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png"> <meta property="og:type" content="website">
+    
+    <meta property="og:url" content="https://sasibadi.pp.ua/"> <meta property="og:title" content="SMBD">
+    
+    <meta property="og:description" content="Chunchunmaru enjoyer">
+    
+    <meta property="og:image" content="https://sasibadi.pp.ua/preview-image.png"> <meta name="twitter:card" content="summary_large_image">
+    
+    <meta property="twitter:domain" content="sasibadi.pp.ua"> <meta property="twitter:url" content="https://sasibadi.pp.ua/"> <meta name="twitter:title" content="SMBD">
+    
+    <meta name="twitter:description" content="Chunchunmaru enjoyer">
+    
+    <meta name="twitter:image" content="https://sasibadi.pp.ua/preview-image.png"> <link rel="preload" href="svg/mid.svg" as="image">
+
     <link rel="preload" href="svg/mute.svg" as="image">
     <link rel="preload" href="svg/min.svg" as="image">
     <link rel="preload" href="svg/max.svg" as="image">
     <link rel="preload" href="https://media1.tenor.com/m/QfA2XrOXS40AAAAd/%D1%82%D1%8E%D0%BB%D0%B5%D0%BD%D1%8C.gif" as="image">
     <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" as="style">
-    <title>SMBD</title>
-    <!-- Подключение Tailwind CSS -->
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="js.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="apple-touch-icon" href="favicon.ico">
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body class="p-4 sm:p-8">
 
@@ -115,6 +132,9 @@
             </button>
             
             <div class="flex items-center space-x-2 w-1/2 min-w-32">
+                <div id="volume-icon-container" class="w-5 h-5 text-blue-600 flex-shrink-0">
+                    <img src="img/volume.svg" alt="Volume Icon" class="w-5 h-5">
+            </div>
                 <input 
                     type="range" 
                     min="0" 
@@ -225,6 +245,19 @@
                     </iframe>
                 </div>
             </div>
+
+            <div class="video-item flex-shrink-0 w-full">
+                <div class="video-container">
+                    <iframe 
+                        id="video-player-2" src="https://www.youtube.com/embed/N1GKJwmG5Aw?si=UXeAWuiEf5_SGEAy&enablejsapi=1" title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen
+                        loading="lazy">
+                    </iframe>
+                </div>
+            </div>    
             
             <div class="video-item flex-shrink-0 w-full">
                 <div class="video-container">
